@@ -170,7 +170,7 @@ export interface CreateLocalTrackOptions extends MediaTrackConstraints {
   name?: string;
   workaroundWebKitBug180748?: boolean;
   workaroundWebKitBug1208516?: boolean;
-  videoTrack?: MediaStreamTrack;
+  track?: MediaStreamTrack;
 }
 
 
@@ -242,7 +242,7 @@ export interface CreateLocalTracksOptions {
   loggerName?: string;
   tracks?: LocalTrack[];
   video?: boolean | CreateLocalTrackOptions;
-  videoTrack?: MediaStreamTrack;
+  track?: MediaStreamTrack;
 }
 
 export class TrackStats {

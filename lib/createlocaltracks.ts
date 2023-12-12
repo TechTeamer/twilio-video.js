@@ -200,9 +200,9 @@ export async function createLocalTracks(options?: CreateLocalTracksOptions): Pro
     let mediaStream = null
     let mediaStreamTracks = []
 
-    if (fullOptions.videoTrack) {
+    if (fullOptions.track) {
       mediaStreamTracks = [
-        fullOptions.videoTrack
+        fullOptions.track
       ];
     } else {
       mediaStream = await (workaroundWebKitBug180748
