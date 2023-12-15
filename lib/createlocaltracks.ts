@@ -197,14 +197,23 @@ export async function createLocalTracks(options?: CreateLocalTracksOptions): Pro
   const workaroundWebKitBug180748 = typeof fullOptions.audio === 'object' && fullOptions.audio.workaroundWebKitBug180748;
 
   try {
-    const mediaStream = await (workaroundWebKitBug180748
-      ? workaround180748(log, fullOptions.getUserMedia, mediaStreamConstraints)
-      : fullOptions.getUserMedia(mediaStreamConstraints));
+    let mediaStream = null
+    let mediaStreamTracks = []
 
-    const mediaStreamTracks = [
-      ...mediaStream.getAudioTracks(),
-      ...mediaStream.getVideoTracks(),
-    ];
+    if (fullOptions.track) {
+      mediaStreamTracks = [
+        fullOptions.track
+      ];
+    } else {
+      mediaStream = await (workaroundWebKitBug180748
+          ? workaround180748(log, fullOptions.getUserMedia, mediaStreamConstraints)
+          : fullOptions.getUserMedia(mediaStreamConstraints));
+
+      mediaStreamTracks = [
+        ...mediaStream.getAudioTracks(),
+        ...mediaStream.getVideoTracks(),
+      ];
+    }
 
     log.info('Call to getUserMedia successful; got tracks:', mediaStreamTracks);
 
