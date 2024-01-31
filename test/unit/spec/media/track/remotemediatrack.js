@@ -233,6 +233,7 @@ const { NullIntersectionObserver } = require('../../../../../lib/util/nullobserv
             'mediaStreamTrack',
             'processedTrack',
             'dimensions',
+            'frameRate',
             'processor',
             'isEnabled',
             'isSwitchedOff',
@@ -369,6 +370,7 @@ const { NullIntersectionObserver } = require('../../../../../lib/util/nullobserv
         } else {
           assert.deepEqual(track.toJSON(), {
             dimensions: track.dimensions,
+            frameRate: track.frameRate,
             isEnabled: track.isEnabled,
             isStarted: track.isStarted,
             isSwitchedOff: track.isSwitchedOff,
