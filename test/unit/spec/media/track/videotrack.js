@@ -13,7 +13,7 @@ let mediaStreamTrackSettings = {
   width: 1280,
   height: 720,
   frameRate: 24,
-  enabled: true
+  enabled: true,
 };
 
 describe('VideoTrack', () => {
@@ -32,18 +32,23 @@ describe('VideoTrack', () => {
       width: 1280,
       height: 720,
       frameRate: 24,
-      enabled: true
+      enabled: true,
     };
 
     processedTrack = { requestFrame: sinon.stub() };
     captureStream = sinon.stub().returns({ getTracks: () => [processedTrack] });
     getContext = sinon.stub().returns({});
     const document = new Document();
-    document.createElement = sinon.stub().returns({ captureStream, getContext });
+    document.createElement = sinon
+      .stub()
+      .returns({ captureStream, getContext });
     global.document = document;
 
     mediaStreamTrack = new MediaStreamTrack('1', 'video');
-    const mediaTrackTransceiver = new MediaTrackTransceiver('1', mediaStreamTrack);
+    const mediaTrackTransceiver = new MediaTrackTransceiver(
+      '1',
+      mediaStreamTrack
+    );
     videoTrack = new VideoTrack(mediaTrackTransceiver, { log: log });
 
     videoTrack._attach = sinon.stub();
@@ -103,7 +108,9 @@ describe('VideoTrack', () => {
 
     describe('options', () => {
       it('should initialize inputFrame as OffscreenCanvas if inputFrameBufferType is offscreencanvas', () => {
-        videoTrack.addProcessor(processor, { inputFrameBufferType: 'offscreencanvas' });
+        videoTrack.addProcessor(processor, {
+          inputFrameBufferType: 'offscreencanvas',
+        });
         assert(videoTrack._inputFrame instanceof OffscreenCanvas);
       });
 
@@ -124,11 +131,12 @@ describe('VideoTrack', () => {
       });
 
       it('should use the provided outputFrameBufferContextType', () => {
-        videoTrack.addProcessor(processor, { outputFrameBufferContextType: 'foobarbaz' });
+        videoTrack.addProcessor(processor, {
+          outputFrameBufferContextType: 'foobarbaz',
+        });
         sinon.assert.calledWith(getContext, 'foobarbaz');
       });
     });
-
 
     describe('unmute handler', () => {
       beforeEach(() => {
@@ -177,8 +185,8 @@ describe('VideoTrack', () => {
       it('should captureStream with 0 fps if requestFrame is supported', () => {
         global.CanvasCaptureMediaStreamTrack = {
           prototype: {
-            requestFrame: () => {}
-          }
+            requestFrame: () => { },
+          },
         };
         videoTrack.removeProcessor(processor);
         videoTrack.addProcessor(processor);
@@ -197,14 +205,29 @@ describe('VideoTrack', () => {
       it('should initialize canvases', () => {
         assert(!!videoTrack._inputFrame);
         assert(!!videoTrack._outputFrame);
-        assert.equal(videoTrack._inputFrame.width, mediaStreamTrackSettings.width);
-        assert.equal(videoTrack._inputFrame.height, mediaStreamTrackSettings.height);
-        assert.equal(videoTrack._outputFrame.width, mediaStreamTrackSettings.width);
-        assert.equal(videoTrack._outputFrame.height, mediaStreamTrackSettings.height);
+        assert.equal(
+          videoTrack._inputFrame.width,
+          mediaStreamTrackSettings.width
+        );
+        assert.equal(
+          videoTrack._inputFrame.height,
+          mediaStreamTrackSettings.height
+        );
+        assert.equal(
+          videoTrack._outputFrame.width,
+          mediaStreamTrackSettings.width
+        );
+        assert.equal(
+          videoTrack._outputFrame.height,
+          mediaStreamTrackSettings.height
+        );
       });
 
       it('should set processedTrack with the correct settings', () => {
-        assert.equal(videoTrack.processedTrack.enabled, mediaStreamTrackSettings.enabled);
+        assert.equal(
+          videoTrack.processedTrack.enabled,
+          mediaStreamTrackSettings.enabled
+        );
       });
 
       it('should set processedTrack with correct dimensions', () => {
@@ -238,7 +261,7 @@ describe('VideoTrack', () => {
         const settings = {
           width: 400,
           height: 200,
-          frameRate: 22
+          frameRate: 22,
         };
         eventObserver.on('add', listener);
         videoTrack.mediaStreamTrack.getSettings = () => settings;
@@ -252,7 +275,7 @@ describe('VideoTrack', () => {
           inputFrameBufferType: 'offscreencanvas',
           inputFrameRate: settings.frameRate,
           isRemoteVideoTrack: false,
-          outputFrameBufferContextType: '2d'
+          outputFrameBufferContextType: '2d',
         });
       });
 
@@ -266,48 +289,71 @@ describe('VideoTrack', () => {
     });
 
     context('raise an error', () => {
-      [{
-        name: 'processor is null',
-        errorMsg: 'Received an invalid VideoProcessor from addProcessor.',
-        params: [null],
-      }, {
-        name: 'processor is undefined',
-        errorMsg: 'Received an invalid VideoProcessor from addProcessor.',
-        params: [undefined],
-      }, {
-        name: 'processFrame is null',
-        errorMsg: 'Received an invalid VideoProcessor from addProcessor.',
-        params: [{ processFrame: null }],
-      }, {
-        name: 'processFrame is undefined',
-        errorMsg: 'Received an invalid VideoProcessor from addProcessor.',
-        params: [{ processFrame: undefined }],
-      }, {
-        name: 'processor is already set',
-        errorMsg: 'A VideoProcessor has already been added.',
-        params: [{ processFrame: sinon.spy() }],
-        setup: () => { videoTrack.processor = { processFrame: sinon.spy() }; }
-      }, {
-        name: 'dummyEl is not set',
-        errorMsg: 'VideoTrack has not been initialized.',
-        params: [{ processFrame: sinon.spy() }],
-        setup: () => { videoTrack._dummyEl = null; }
-      }, {
-        name: 'inputFrameBufferType is offscreencanvas but OffscreenCanvas is not supported',
-        errorMsg: 'OffscreenCanvas is not supported by this browser.',
-        params: [{ processFrame: sinon.spy() }, { inputFrameBufferType: 'offscreencanvas' }],
-        setup: () => { delete global.OffscreenCanvas; }
-      }, {
-        name: 'inputFrameBufferType is not a valid value',
-        errorMsg: 'Invalid inputFrameBufferType of foo',
-        params: [{ processFrame: sinon.spy() }, { inputFrameBufferType: 'foo' }]
-      }].forEach(({ name, errorMsg, params, setup }) => {
+      [
+        {
+          name: 'processor is null',
+          errorMsg: 'Received an invalid VideoProcessor from addProcessor.',
+          params: [null],
+        },
+        {
+          name: 'processor is undefined',
+          errorMsg: 'Received an invalid VideoProcessor from addProcessor.',
+          params: [undefined],
+        },
+        {
+          name: 'processFrame is null',
+          errorMsg: 'Received an invalid VideoProcessor from addProcessor.',
+          params: [{ processFrame: null }],
+        },
+        {
+          name: 'processFrame is undefined',
+          errorMsg: 'Received an invalid VideoProcessor from addProcessor.',
+          params: [{ processFrame: undefined }],
+        },
+        {
+          name: 'processor is already set',
+          errorMsg: 'A VideoProcessor has already been added.',
+          params: [{ processFrame: sinon.spy() }],
+          setup: () => {
+            videoTrack.processor = { processFrame: sinon.spy() };
+          },
+        },
+        {
+          name: 'dummyEl is not set',
+          errorMsg: 'VideoTrack has not been initialized.',
+          params: [{ processFrame: sinon.spy() }],
+          setup: () => {
+            videoTrack._dummyEl = null;
+          },
+        },
+        {
+          name: 'inputFrameBufferType is offscreencanvas but OffscreenCanvas is not supported',
+          errorMsg: 'OffscreenCanvas is not supported by this browser.',
+          params: [
+            { processFrame: sinon.spy() },
+            { inputFrameBufferType: 'offscreencanvas' },
+          ],
+          setup: () => {
+            delete global.OffscreenCanvas;
+          },
+        },
+        {
+          name: 'inputFrameBufferType is not a valid value',
+          errorMsg: 'Invalid inputFrameBufferType of foo',
+          params: [
+            { processFrame: sinon.spy() },
+            { inputFrameBufferType: 'foo' },
+          ],
+        },
+      ].forEach(({ name, errorMsg, params, setup }) => {
         it(`when ${name}`, () => {
           if (setup) {
             setup();
           }
           const regex = new RegExp(errorMsg);
-          assert.throws(() => { videoTrack.addProcessor(...params); }, regex);
+          assert.throws(() => {
+            videoTrack.addProcessor(...params);
+          }, regex);
         });
       });
     });
@@ -327,17 +373,11 @@ describe('VideoTrack', () => {
       videoTrack.mediaStreamTrack.removeEventListener = sinon.stub();
     });
 
-    it('should clear existing timeout callback', () => {
-      let cb = sinon.stub();
-      videoTrack._captureTimeoutId = setTimeout(cb, 50);
-      clock.tick(50);
-      sinon.assert.calledOnce(cb);
-
-      cb = sinon.stub();
-      videoTrack._captureTimeoutId = setTimeout(cb, 50);
+    it('should call _stopCapture', () => {
+      const stopCapture = sinon.spy();
+      videoTrack._stopCapture = stopCapture;
       videoTrack.removeProcessor(processor);
-      clock.tick(50);
-      sinon.assert.notCalled(cb);
+      sinon.assert.calledOnce(stopCapture);
     });
 
     it('should emit remove event', () => {
@@ -353,7 +393,7 @@ describe('VideoTrack', () => {
     });
 
     describe('should reset field', () => {
-      const unmuteHandler = () => {};
+      const unmuteHandler = () => { };
       beforeEach(() => {
         videoTrack._unmuteHandler = unmuteHandler;
         videoTrack.removeProcessor(processor);
@@ -380,37 +420,49 @@ describe('VideoTrack', () => {
       });
 
       it('_unmuteHandler', () => {
-        sinon.assert.calledWith(videoTrack.mediaStreamTrack.removeEventListener, 'unmute', unmuteHandler);
+        sinon.assert.calledWith(
+          videoTrack.mediaStreamTrack.removeEventListener,
+          'unmute',
+          unmuteHandler
+        );
       });
     });
 
     context('raise an error', () => {
-      [{
-        name: 'processor param is null',
-        errorMsg: 'Received an invalid VideoProcessor from removeProcessor.',
-        getParam: () => null
-      }, {
-        name: 'processor param is undefined',
-        errorMsg: 'Received an invalid VideoProcessor from removeProcessor.',
-        getParam: () => undefined
-      }, {
-        name: 'there is no existing processor',
-        errorMsg: 'No existing VideoProcessor detected.',
-        getParam: () => processor,
-        setup: () => {
-          videoTrack.processor = null;
-        }
-      }, {
-        name: 'processor param is not the same as the existing one',
-        errorMsg: 'The provided VideoProcessor is different than the existing one.',
-        getParam: () => ({ bar: 'bar' })
-      }].forEach(({ name, errorMsg, getParam, setup }) => {
+      [
+        {
+          name: 'processor param is null',
+          errorMsg: 'Received an invalid VideoProcessor from removeProcessor.',
+          getParam: () => null,
+        },
+        {
+          name: 'processor param is undefined',
+          errorMsg: 'Received an invalid VideoProcessor from removeProcessor.',
+          getParam: () => undefined,
+        },
+        {
+          name: 'there is no existing processor',
+          errorMsg: 'No existing VideoProcessor detected.',
+          getParam: () => processor,
+          setup: () => {
+            videoTrack.processor = null;
+          },
+        },
+        {
+          name: 'processor param is not the same as the existing one',
+          errorMsg:
+            'The provided VideoProcessor is different than the existing one.',
+          getParam: () => ({ bar: 'bar' }),
+        },
+      ].forEach(({ name, errorMsg, getParam, setup }) => {
         it(`when ${name}`, () => {
           if (setup) {
             setup();
           }
           const regex = new RegExp(errorMsg);
-          assert.throws(() => { videoTrack.removeProcessor(getParam()); }, regex);
+          assert.throws(() => {
+            videoTrack.removeProcessor(getParam());
+          }, regex);
         });
       });
     });
@@ -434,7 +486,10 @@ describe('VideoTrack', () => {
       videoTrack._restartProcessor();
       sinon.assert.calledOnce(videoTrack.addProcessor);
       sinon.assert.calledOnce(videoTrack.removeProcessor);
-      sinon.assert.callOrder(videoTrack.removeProcessor, videoTrack.addProcessor);
+      sinon.assert.callOrder(
+        videoTrack.removeProcessor,
+        videoTrack.addProcessor
+      );
     });
 
     it('should restart if processor with original options', () => {
@@ -443,7 +498,11 @@ describe('VideoTrack', () => {
       videoTrack.processor = { foo: 'foo' };
       videoTrack._restartProcessor();
       videoTrack._processorOptions = origOptions;
-      sinon.assert.calledWithExactly(videoTrack.addProcessor, { foo: 'foo' }, { foobar: 'foobar' });
+      sinon.assert.calledWithExactly(
+        videoTrack.addProcessor,
+        { foo: 'foo' },
+        { foobar: 'foobar' }
+      );
     });
   });
 
@@ -477,20 +536,32 @@ describe('VideoTrack', () => {
       videoTrack._attachments.add('foo');
       videoTrack.processor = { processFrame };
 
-      videoTrack._dummyEl.play = () => ({ then: cb => {
-        cb();
-        return { catch: sinon.stub() };
-      } });
+      videoTrack._dummyEl.play = () => ({
+        then: cb => {
+          cb();
+          return { catch: sinon.stub() };
+        },
+      });
 
-      videoTrack._inputFrame = new OffscreenCanvas(mediaStreamTrackSettings.width, mediaStreamTrackSettings.height);
-      videoTrack._outputFrame = new OffscreenCanvas(mediaStreamTrackSettings.width, mediaStreamTrackSettings.height);
+      videoTrack._inputFrame = new OffscreenCanvas(
+        mediaStreamTrackSettings.width,
+        mediaStreamTrackSettings.height
+      );
+      videoTrack._outputFrame = new OffscreenCanvas(
+        mediaStreamTrackSettings.width,
+        mediaStreamTrackSettings.height
+      );
     });
 
     describe('processFrame', () => {
       it('should pass the inputFrames to the processFrame method', () => {
         videoTrack._captureFrames();
         clock.tick(timeoutMs);
-        sinon.assert.calledWith(processFrame, videoTrack._inputFrame, videoTrack._outputFrame);
+        sinon.assert.calledWith(
+          processFrame,
+          videoTrack._inputFrame,
+          videoTrack._outputFrame
+        );
       });
 
       it('should update processedTrack\'s current frame', async () => {
@@ -504,14 +575,26 @@ describe('VideoTrack', () => {
       it('should update inputFrame dimension at runtime', async () => {
         mediaStreamTrackSettings.width = 400;
         mediaStreamTrackSettings.height = 200;
-        videoTrack.processor.processFrame = () => {};
+        videoTrack.processor.processFrame = () => { };
         videoTrack._captureFrames();
         clock.tick(timeoutMs);
         await internalPromise();
-        assert.equal(videoTrack._inputFrame.width, mediaStreamTrackSettings.width);
-        assert.equal(videoTrack._inputFrame.height, mediaStreamTrackSettings.height);
-        assert.equal(videoTrack._outputFrame.width, mediaStreamTrackSettings.width);
-        assert.equal(videoTrack._outputFrame.height, mediaStreamTrackSettings.height);
+        assert.equal(
+          videoTrack._inputFrame.width,
+          mediaStreamTrackSettings.width
+        );
+        assert.equal(
+          videoTrack._inputFrame.height,
+          mediaStreamTrackSettings.height
+        );
+        assert.equal(
+          videoTrack._outputFrame.width,
+          mediaStreamTrackSettings.width
+        );
+        assert.equal(
+          videoTrack._outputFrame.height,
+          mediaStreamTrackSettings.height
+        );
       });
 
       describe('when inputFrameBufferType is video', () => {
@@ -529,7 +612,11 @@ describe('VideoTrack', () => {
         it('should pass the video inputFrames to the processFrame method', () => {
           videoTrack._captureFrames();
           clock.tick(timeoutMs);
-          sinon.assert.calledWith(processFrame, videoTrack._dummyEl, videoTrack._outputFrame);
+          sinon.assert.calledWith(
+            processFrame,
+            videoTrack._dummyEl,
+            videoTrack._outputFrame
+          );
         });
       });
     });
@@ -542,8 +629,14 @@ describe('VideoTrack', () => {
           frameRate: 20,
         };
         const timeoutMs = Math.floor(1000 / settings.frameRate);
-        videoTrack._inputFrame = new OffscreenCanvas(settings.width, settings.height);
-        videoTrack._outputFrame = new OffscreenCanvas(settings.width, settings.height);
+        videoTrack._inputFrame = new OffscreenCanvas(
+          settings.width,
+          settings.height
+        );
+        videoTrack._outputFrame = new OffscreenCanvas(
+          settings.width,
+          settings.height
+        );
         videoTrack.mediaStreamTrack.getSettings = () => settings;
 
         const cb = sinon.stub();
@@ -560,7 +653,7 @@ describe('VideoTrack', () => {
         videoTrack._captureFrames();
         await internalPromise();
 
-        clock.tick(artificialDelay - 1);
+        clock.tick(timeoutMs + artificialDelay - 1);
         await internalPromise();
         sinon.assert.notCalled(cb);
 
@@ -572,56 +665,53 @@ describe('VideoTrack', () => {
         await internalPromise();
         sinon.assert.calledOnce(cb);
 
-        settings.frameRate -= 10;
-        const newTimeoutMs = Math.floor(1000 / settings.frameRate);
-        clock.tick(timeoutMs - artificialDelay);
+        clock.tick(artificialDelay);
         await internalPromise();
         sinon.assert.calledTwice(cb);
-
-        // The callback should not trigger since we decrease the frameRate
-        // so it still called twice
-        clock.tick(timeoutMs - artificialDelay);
-        await internalPromise();
-        sinon.assert.calledTwice(cb);
-
-        // The callback should now trigger with the new frameRate
-        clock.tick(newTimeoutMs - (timeoutMs - newTimeoutMs));
-        await internalPromise();
-        sinon.assert.calledThrice(cb);
       });
 
-      [{
-        state: 'MediaStreamTrack is disabled',
-        setState: () => {
-          mediaStreamTrack.enabled = false;
-        }
-      }, {
-        state: 'MediaStreamTrack is ended',
-        setState: () => {
-          mediaStreamTrack.readyState = 'ended';
-        }
-      }, {
-        state: 'VideoProcessor not detected.',
-        setState: () => {
-          videoTrack.processor = null;
-        }
-      }, {
-        state: 'there are no video elements attached and isPublishing has default value',
-        message: 'VideoTrack is not publishing and there is no attached element.',
-        setState: () => {
-          videoTrack._attachments.clear();
-        }
-      }, {
-        state: 'there are no video elements attached and isPublishing false',
-        message: 'VideoTrack is not publishing and there is no attached element.',
-        setState: () => {
-          videoTrack._origCheckIfCanCaptureFrames = videoTrack._checkIfCanCaptureFrames;
-          videoTrack._checkIfCanCaptureFrames = () => {
-            return videoTrack._origCheckIfCanCaptureFrames(false);
-          };
-          videoTrack._attachments.clear();
-        }
-      }].forEach(({ state, setState, message }) => {
+      [
+        {
+          state: 'MediaStreamTrack is disabled',
+          setState: () => {
+            mediaStreamTrack.enabled = false;
+          },
+        },
+        {
+          state: 'MediaStreamTrack is ended',
+          setState: () => {
+            mediaStreamTrack.readyState = 'ended';
+          },
+        },
+        {
+          state: 'VideoProcessor not detected.',
+          setState: () => {
+            videoTrack.processor = null;
+          },
+        },
+        {
+          state:
+            'there are no video elements attached and isPublishing has default value',
+          message:
+            'VideoTrack is not publishing and there is no attached element.',
+          setState: () => {
+            videoTrack._attachments.clear();
+          },
+        },
+        {
+          state: 'there are no video elements attached and isPublishing false',
+          message:
+            'VideoTrack is not publishing and there is no attached element.',
+          setState: () => {
+            videoTrack._origCheckIfCanCaptureFrames =
+              videoTrack._checkIfCanCaptureFrames;
+            videoTrack._checkIfCanCaptureFrames = () => {
+              return videoTrack._origCheckIfCanCaptureFrames(false);
+            };
+            videoTrack._attachments.clear();
+          },
+        },
+      ].forEach(({ state, setState, message }) => {
         it(`should stop capturing frames if ${state}`, async () => {
           videoTrack._captureFrames();
 
@@ -664,7 +754,8 @@ describe('VideoTrack', () => {
 
         beforeEach(() => {
           setup = () => {
-            videoTrack._origCheckIfCanCaptureFrames = videoTrack._checkIfCanCaptureFrames;
+            videoTrack._origCheckIfCanCaptureFrames =
+              videoTrack._checkIfCanCaptureFrames;
             videoTrack._checkIfCanCaptureFrames = () => {
               return videoTrack._origCheckIfCanCaptureFrames(true);
             };
@@ -765,7 +856,9 @@ function OffscreenCanvas(width, height) {
     drawImage: (image, x, y, width, height) => {
       this.drawing = { image, x, y, width, height };
     },
-    clearRect: () => { this.drawing = null; }
+    clearRect: () => {
+      this.drawing = null;
+    },
   });
 }
 
@@ -777,9 +870,11 @@ function MediaStreamTrack(id, kind) {
     enabled: { value: mediaStreamTrackSettings.enabled, writable: true },
     readyState: { value: 'live', writable: true },
     muted: { value: false, writable: true },
-    getSettings: { value: () => mediaStreamTrackSettings, writable: true }
+    getSettings: { value: () => mediaStreamTrackSettings, writable: true },
   });
 }
 inherits(MediaStreamTrack, EventEmitter);
-MediaStreamTrack.prototype.addEventListener = MediaStreamTrack.prototype.addListener;
-MediaStreamTrack.prototype.removeEventListener = MediaStreamTrack.prototype.removeListener;
+MediaStreamTrack.prototype.addEventListener =
+  MediaStreamTrack.prototype.addListener;
+MediaStreamTrack.prototype.removeEventListener =
+  MediaStreamTrack.prototype.removeListener;
